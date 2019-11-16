@@ -2005,12 +2005,14 @@ __webpack_require__.r(__webpack_exports__);
     this.getData();
   },
   methods: {
+    //Inicializamos el datatable
     depositsTable: function depositsTable() {
       $(function () {
         $('#deposits_table').DataTable();
         $('#total').number(true, 2);
       });
     },
+    // Obtenemos todos los depositos
     getData: function getData() {
       var _this = this;
 
@@ -2027,12 +2029,14 @@ __webpack_require__.r(__webpack_exports__);
         _this.$Progress.fail();
       });
     },
+    // Función para llamar al modal para crear un deposito
     create: function create() {
       this.isUpdate = false;
       this.form.reset();
       this.form.clear();
       $("#addDeposit").modal("show");
     },
+    // Función para enviar los datos y crear el registro en la base de datos
     store: function store() {
       var _this2 = this;
 
@@ -2058,6 +2062,7 @@ __webpack_require__.r(__webpack_exports__);
         console.log(e);
       });
     },
+    // Función para realizar la edición de un registro previamente seleccionado
     edit: function edit(deposit) {
       this.isUpdate = true;
       this.form.reset();
@@ -2065,6 +2070,7 @@ __webpack_require__.r(__webpack_exports__);
       this.form.fill(deposit);
       $("#addDeposit").modal("show");
     },
+    // Función para enviar los datos que se hayan actualizado y se almacenen
     update: function update() {
       var _this3 = this;
 
@@ -2090,6 +2096,7 @@ __webpack_require__.r(__webpack_exports__);
         console.log(e);
       });
     },
+    // Función para eliminar un registro que haya sido seleccionado
     destroy: function destroy(deposit) {
       var _this4 = this;
 
@@ -2415,14 +2422,17 @@ __webpack_require__.r(__webpack_exports__);
   },
   mounted: function mounted() {
     this.getQuotes();
+    this.paymentsTable();
   },
   methods: {
+    // Inicialización del datatable de cotizaciones
     quotesTable: function quotesTable() {
       $(function () {
         $('#quotes_table').DataTable();
         $('#car_price').number(true, 2);
       });
     },
+    // Inicialización del datatable de depositos
     paymentsTable: function paymentsTable() {
       $(function () {
         $('#payments_table').DataTable({
@@ -2430,12 +2440,12 @@ __webpack_require__.r(__webpack_exports__);
         });
       });
     },
+    // Función para obtener el listado de todas las cotizaciones con sus respectivos depositos
     getQuotes: function getQuotes() {
       var _this = this;
 
       this.$Progress.start();
       axios.get("/api/quotes").then(function (response) {
-        console.log(response.data.data);
         _this.quotes = response.data.data;
 
         _this.quotesTable();
@@ -2452,6 +2462,7 @@ __webpack_require__.r(__webpack_exports__);
       this.form.clear();
       $("#addQuote").modal("show");
     },
+    // Función para enviar y guardar en base de datos una cotización
     store: function store() {
       var _this2 = this;
 
@@ -2477,17 +2488,16 @@ __webpack_require__.r(__webpack_exports__);
         console.log(e);
       });
     },
+    // Función para llamar al modal para seleccionar los depositos a vincular en la cotización previamente seleccionada
     addDeposits: function addDeposits(quote) {
       var _this3 = this;
 
+      this.depositsSelected = [];
       this.form2.reset();
       this.form2.clear();
       this.form2.fill(quote);
-      console.log(quote.id);
       axios.get('/api/get-deposits/' + quote.id).then(function (response) {
         _this3.deposits = response.data.data;
-
-        _this3.paymentsTable();
 
         _this3.$Progress.finish();
       })["catch"](function (e) {
@@ -2497,6 +2507,7 @@ __webpack_require__.r(__webpack_exports__);
       });
       $("#addPayments").modal("show");
     },
+    // Función para vincular los depositos a las cotizaciones
     storePayments: function storePayments() {
       var _this4 = this;
 
@@ -2506,19 +2517,22 @@ __webpack_require__.r(__webpack_exports__);
         });
       } else {
         this.form2.depositsSelected = this.depositsSelected;
-        console.log(this.form2.depositsSelected);
         this.$Progress.start();
         this.form2.busy = true;
         this.form2.put("/api/add-payments/" + this.form2.id).then(function (response) {
           _this4.getQuotes();
 
-          console.log(response.data);
+          var isPaid = response.data.data.isPaid;
           $("#addPayments").modal("hide");
 
           if (_this4.form2.successful) {
             _this4.$Progress.finish();
 
-            _this4.$snotify.success("Deposito(s) agregado(s) correctamente!", "Éxito");
+            if (isPaid !== false) {
+              _this4.$snotify.success("La cotización ha sido cubierta!", "Éxito");
+            } else {
+              _this4.$snotify.success("Deposito(s) agregado(s) correctamente!", "Éxito");
+            }
           } else {
             _this4.$Progress.fail();
 

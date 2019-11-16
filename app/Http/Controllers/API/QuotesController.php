@@ -111,12 +111,13 @@ class QuotesController extends Controller
         $quote = Quote::findOrFail($id);
 
         $quote->deposits()->attach($request->depositsSelected);
+
         $amount = 0;
-        foreach ($quote->deposits() as $key => $deposit){
+        foreach ($quote->deposits as $deposit){
             $amount += $deposit['total'];
         }
 
-        if($quote->price == $amount){
+        if($quote->car_price == $amount){
             $quote->update(['isPaid' => 1]);
         }
 

@@ -270,6 +270,7 @@
         },
         mounted() {
             this.getQuotes();
+            this.paymentsTable();
         },
         methods: {
             // Inicialización del datatable de cotizaciones
@@ -292,7 +293,6 @@
                 this.$Progress.start();
                 axios.get("/api/quotes")
                     .then(response => {
-                        console.log(response.data.data);
                         this.quotes = response.data.data;
                         this.quotesTable();
                         this.$Progress.finish();
@@ -336,13 +336,13 @@
             },
             // Función para llamar al modal para seleccionar los depositos a vincular en la cotización previamente seleccionada
             addDeposits(quote){
+                this.depositsSelected = [];
                 this.form2.reset();
                 this.form2.clear();
                 this.form2.fill(quote);
-                console.log(quote.id);
+
                 axios.get('/api/get-deposits/' + quote.id).then(response => {
                     this.deposits = response.data.data;
-                    this.paymentsTable();
                     this.$Progress.finish();
                 }).catch(e => {
                     this.$Progress.fail();
@@ -363,19 +363,23 @@
                     );
                 }else{
                     this.form2.depositsSelected = this.depositsSelected;
-                    console.log(this.form2.depositsSelected);
                     this.$Progress.start();
                     this.form2.busy = true;
                     this.form2
                         .put("/api/add-payments/" + this.form2.id)
                         .then(response => {
                             this.getQuotes();
-                            console.log(response.data);
+                            var isPaid = response.data.data.isPaid;
+
                             $("#addPayments").modal("hide");
 
                             if (this.form2.successful) {
                                 this.$Progress.finish();
-                                this.$snotify.success("Deposito(s) agregado(s) correctamente!", "Éxito");
+                                if(isPaid !== false){
+                                    this.$snotify.success("La cotización ha sido cubierta!", "Éxito");
+                                }else{
+                                    this.$snotify.success("Deposito(s) agregado(s) correctamente!", "Éxito");
+                                }
                             } else {
                                 this.$Progress.fail();
                                 this.$snotify.error(

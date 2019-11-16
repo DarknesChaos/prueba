@@ -24,6 +24,7 @@ class QuoteResource extends JsonResource
             'car_year' => $this->car_year,
             'car_price' => $this->car_price,
             'date' => Carbon::parse($this->date)->format('d-m-Y'),
+            'isPaid' => ($this->isPaid != 0) ? true : false,
         ];
     }
 }
